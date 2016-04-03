@@ -72,7 +72,7 @@ static struct msm_gpiomux_config msm_hsic_configs[] = {
 
 #define KS8851_IRQ_GPIO 115
 
-#if defined(CONFIG_MACH_MATISSELTE_VZW) || defined(CONFIG_MACH_MATISSELTE_USC) || defined(CONFIG_MACH_MATISSE3G_OPEN)
+#if defined(CONFIG_MACH_MATISSELTE_VZW) || defined(CONFIG_MACH_MATISSELTE_USC) || defined(CONFIG_MACH_MATISSE3G_OPEN) || defined(CONFIG_MACH_MATISSEWIFI_OPEN)
 #define NC_GPIO_CONFIG(gpio_num) { \
 		.gpio = gpio_num, \
 		.settings ={[GPIOMUX_SUSPENDED] = &nc_cfg,}\
@@ -93,7 +93,7 @@ static struct gpiomux_setting nc_cfg = {
 };
 #endif
 
-#if defined(CONFIG_MACH_MATISSEWIFI_OPEN) || defined(CONFIG_MACH_MATISSELTE_OPEN)
+#if defined(CONFIG_MACH_MATISSELTEXXX_OPEN)
 #define MAKE_NC_CONFIG_INIT_SLEEP(gpio_num) { \
 		.gpio = gpio_num, \
 		.settings ={ \
