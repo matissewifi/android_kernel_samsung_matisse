@@ -535,7 +535,7 @@ void dlog(struct _dlogdebug *desc, ...)
 
 	static u32 *buff = NULL;
 	unsigned long flags;
-	int ev_idx = desc - __start___dlog;
+	int ev_idx = 0;
 	int para_count = 0;
 	int temp_main_idx = 0 ;
 #ifdef __KERNEL__
@@ -760,12 +760,12 @@ static enum  {	DLOG_BUFFER_READING,	KLOG_BUFFER_READING,	SECLOG_BUFFER_READING, 
  
  /* Get the size of description section needed */
  static int get_desc_size(void){
-			int len = __stop___dlog - __start___dlog;
+			int len = 0;
 			int i = 0;
 			int str_len = 0;
 
 			for(; i < len; i++) {
-				struct _dlogdebug *ptr = __start___dlog + i;
+				struct _dlogdebug *ptr = 0;
 				str_len += strlen(ptr->filename) + 1;
 				str_len += strlen(ptr->format) + 1;
 				str_len += strlen(ptr->function) + 1;
@@ -777,13 +777,13 @@ static enum  {	DLOG_BUFFER_READING,	KLOG_BUFFER_READING,	SECLOG_BUFFER_READING, 
 
  /* Initialize event descriptor section */
  static void init_event_desc(char *buff,int length){
-		int len = __stop___dlog - __start___dlog;
+		int len = 0;
 		int i = 0;
 		int str_len = 0;
 
 		memset(buff,0x0,length);
 		for(; (i < len && str_len < length); i++) {
-			struct _dlogdebug *ptr = __start___dlog + i;
+			struct _dlogdebug *ptr = 0;
 			int *line_ptr = 0;
 			str_len += (snprintf(buff+str_len,length-str_len,"%s", ptr->filename) + 1);
 			str_len += (snprintf(buff+str_len,length-str_len,"%s", ptr->format) + 1);
@@ -903,7 +903,7 @@ static enum  {	DLOG_BUFFER_READING,	KLOG_BUFFER_READING,	SECLOG_BUFFER_READING, 
 								__FILE__, __LINE__);
 							return -1;
 		}
-		pr_info("Init Section: %p",__start___dlog);
+		//pr_info("Init Section: %p",0);
 	}
 	if (debugfs_create_file("dlogger", 0644, dent, 0, &dlog_fops)
 		== NULL) {
