@@ -502,7 +502,7 @@ static void msm_kexec_hardboot_hook(void)
 	// Set PMIC to restart-on-poweroff
 	pm8xxx_reset_pwr_off(1);
 
-	//__raw_writel(0x12345678, restart_reason);
+	__raw_writel(0x12345678, restart_reason);
 
 #ifdef CONFIG_RESTART_REASON_DDR
 	if(restart_reason_ddr_address) {
