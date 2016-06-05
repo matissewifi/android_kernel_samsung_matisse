@@ -692,6 +692,8 @@ static int fuse_readpages_fill(void *_data, struct page *page)
 		lock_page(newpage);
 		put_page(newpage);
 
+		lru_cache_add_file(newpage);
+
 		/* finally release the old page and swap pointers */
 		unlock_page(oldpage);
 		page_cache_release(oldpage);
@@ -881,7 +883,6 @@ static ssize_t fuse_fill_write_pages(struct fuse_req *req,
 
 		mark_page_accessed(page);
 
-		iov_iter_advance(ii, tmp);
 		if (!tmp) {
 			unlock_page(page);
 			page_cache_release(page);
@@ -893,6 +894,7 @@ static ssize_t fuse_fill_write_pages(struct fuse_req *req,
 		req->pages[req->num_pages] = page;
 		req->num_pages++;
 
+		iov_iter_advance(ii, tmp);
 		count += tmp;
 		pos += tmp;
 		offset += tmp;
@@ -998,9 +1000,7 @@ static ssize_t fuse_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
 	if (err)
 		goto out;
 
-	err = file_update_time(file);
-	if (err)
-		goto out;
+	file_update_time(file);
 
 	if (file->f_flags & O_DIRECT) {
 		written = generic_file_direct_write(iocb, iov, &nr_segs,

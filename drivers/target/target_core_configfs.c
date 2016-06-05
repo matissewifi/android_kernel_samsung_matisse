@@ -322,8 +322,6 @@ struct target_fabric_configfs *target_fabric_configfs_init(
 	list_add_tail(&tf->tf_list, &g_tf_list);
 	mutex_unlock(&g_tf_lock);
 
-	pr_debug("<<<<<<<<<<<<<<<<<<<<<< BEGIN FABRIC API >>>>>>>>"
-			">>>>>>>>>>>>>>\n");
 	pr_debug("Initialized struct target_fabric_configfs: %p for"
 			" %s\n", tf, tf->tf_name);
 	return tf;
@@ -517,8 +515,6 @@ int target_fabric_configfs_register(
 	if (ret < 0)
 		return ret;
 
-	pr_debug("<<<<<<<<<<<<<<<<<<<<<< END FABRIC API >>>>>>>>>>>>"
-		">>>>>>>>>>\n");
 	return 0;
 }
 EXPORT_SYMBOL(target_fabric_configfs_register);
@@ -539,8 +535,6 @@ void target_fabric_configfs_deregister(
 			" pointer\n");
 		return;
 	}
-	pr_debug("<<<<<<<<<<<<<<<<<<<<<< BEGIN FABRIC API >>>>>>>>>>"
-			">>>>>>>>>>>>\n");
 	mutex_lock(&g_tf_lock);
 	if (atomic_read(&tf->tf_access_cnt)) {
 		mutex_unlock(&g_tf_lock);
@@ -557,7 +551,6 @@ void target_fabric_configfs_deregister(
 	tf->tf_subsys = NULL;
 	kfree(tf);
 
-	pr_debug("<<<<<<<<<<<<<<<<<<<<<< END FABRIC API >>>>>>>>>>>>>>>>>"
 			">>>>>\n");
 }
 EXPORT_SYMBOL(target_fabric_configfs_deregister);

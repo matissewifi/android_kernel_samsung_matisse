@@ -18,6 +18,9 @@
 #elif defined(CONFIG_MFD_MAX77804K)
 #include <linux/mfd/max77804k.h>
 #endif
+#ifdef CONFIG_USB_SWITCH_FSA9485
+#include <linux/i2c/fsa9485.h>
+#endif
 #ifdef pr_fmt
 #undef pr_fmt
 #endif
@@ -76,7 +79,11 @@ static void hnotifier_work(struct work_struct *w)
 	case HNOTIFY_ID:
 		pr_info("!ID\n");
 		host_state_notify(&pinfo->ndev,	NOTIFY_HOST_ADD);
+#if defined(CONFIG_MUIC_MAX77804K_SUPPORT_LANHUB)
+		safe_boost(pinfo, 2);
+#else
 		safe_boost(pinfo, 1);
+#endif
 		sec_handle_event(1);
 		break;
 	case HNOTIFY_ENUMERATED:
@@ -89,6 +96,11 @@ static void hnotifier_work(struct work_struct *w)
 		break;
 	case HNOTIFY_OVERCURRENT:
 		pr_info("OVP\n");
+#ifdef CONFIG_USB_SWITCH_FSA9485
+		if(check_mmdock_connect())			/*check mmdock is connected , return 1 - True , 0 - False*/
+			host_state_notify(&pinfo->ndev,	NOTIFY_HOST_NONE);
+		else
+#endif
 		host_state_notify(&pinfo->ndev,	NOTIFY_HOST_OVERCURRENT);
 		break;
 	case HNOTIFY_OTG_POWER_ON:
@@ -191,6 +203,10 @@ static int host_notifier_probe(struct platform_device *pdev)
 
 	ninfo.ndev.set_booster = host_notifier_booster;
 	ninfo.phy = usb_get_transceiver();
+
+	if(!ninfo.phy){
+		return -ENODEV;
+	}
 	ATOMIC_INIT_NOTIFIER_HEAD(&ninfo.phy->notifier);
 
 	ret = host_notify_dev_register(&ninfo.ndev);

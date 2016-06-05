@@ -254,7 +254,6 @@ __create_page_tables:
 	/*
 	 * Then map boot params address in r2 or the first 1MB (2MB with LPAE)
 	 * of ram if boot params address is not specified.
-	 * We map 2 sections in case the ATAGs/DTB crosses a section boundary.
 	 */
 	mov	r0, r2, lsr #SECTION_SHIFT
 	movs	r0, r0, lsl #SECTION_SHIFT
@@ -263,8 +262,6 @@ __create_page_tables:
 	add	r3, r3, #PAGE_OFFSET
 	add	r3, r4, r3, lsr #(SECTION_SHIFT - PMD_ORDER)
 	orr	r6, r7, r0
-	str	r6, [r3], #1 << PMD_ORDER
-	add	r6, r6, #1 << SECTION_SHIFT
 	str	r6, [r3]
 
 #ifdef CONFIG_DEBUG_LL
@@ -429,26 +426,24 @@ __enable_mmu:
 		      domain_val(DOMAIN_KERNEL, DOMAIN_MANAGER) | \
 		      domain_val(DOMAIN_TABLE, DOMAIN_MANAGER) | \
 		      domain_val(DOMAIN_IO, DOMAIN_CLIENT))
+#ifdef	CONFIG_TIMA_RKP_30
+#ifndef CONFIG_TIMA_RKP_EMUL_CP15_INSTR
 	mcr	p15, 0, r5, c3, c0, 0		@ load domain access register
-#ifdef CONFIG_TIMA_RKP_30
+#endif	/* CONFIG_TIMA_RKP_EMUL_CP15_INSTR */
 	/* TIMA loads TTBR0 */
 	.arch_extension sec
-	mov r5, r0  @ save r0
-	mov r6, r2  @ save r2
+	mov r6, r0  @ save r0
 
-	mov r2, r4
 	ldr r0, =0x3f827221
 	smc #1
 
-	mov r0, r5  @ restore r0
-	mov r2, r6  @ restore r2
+	mov r0, r6  @ restore r0
 
-#ifdef  CONFIG_TIMA_RKP_30
 	/* Flush TLB */
 	mcr    p15, 0, r0, c8, c3, 0
 	dsb
-#endif
 #else
+	mcr	p15, 0, r5, c3, c0, 0		@ load domain access register
 	mcr	p15, 0, r4, c2, c0, 0		@ load page table pointer
 #endif  /* CONFIG_TIMA_RKP_30 */
 #endif

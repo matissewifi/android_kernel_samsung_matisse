@@ -3429,7 +3429,6 @@ void iscsit_thread_get_cpumask(struct iscsi_conn *conn)
 	 */
 	ord = ts->thread_id % cpumask_weight(cpu_online_mask);
 #if 0
-	pr_debug(">>>>>>>>>>>>>>>>>>>> Generated ord: %d from"
 			" thread_id: %d\n", ord, ts->thread_id);
 #endif
 	for_each_online_cpu(cpu) {
@@ -3472,7 +3471,6 @@ static inline void iscsit_thread_check_cpumask(
 	memset(buf, 0, 128);
 	cpumask_scnprintf(buf, 128, conn->conn_cpumask);
 #if 0
-	pr_debug(">>>>>>>>>>>>>> Calling set_cpus_allowed_ptr():"
 			" %s for %s\n", buf, p->comm);
 #endif
 	set_cpus_allowed_ptr(p, conn->conn_cpumask);

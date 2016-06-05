@@ -1269,7 +1269,6 @@ inline void update_network(struct ieee80211_network *dst,
 	if(src->ssid_len > 0)
 	{
 		//if(src->ssid_len == 13)
-		//	printk("=====================>>>>>>>> Dst ssid: %s Src ssid: %s\n", dst->ssid, src->ssid);
 		memset(dst->ssid, 0, dst->ssid_len);
 		dst->ssid_len = src->ssid_len;
 		memcpy(dst->ssid, src->ssid, src->ssid_len);

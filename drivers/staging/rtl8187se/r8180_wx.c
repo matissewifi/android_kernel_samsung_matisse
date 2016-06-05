@@ -714,7 +714,6 @@ static int r8180_wx_set_power(struct net_device *dev,
 		return 0;
 
 	down(&priv->wx_sem);
-	printk("=>>>>>>>>>>=============================>set power:%d, %d!\n", wrqu->power.disabled, wrqu->power.flags);
 	if (wrqu->power.disabled == 0) {
 		wrqu->power.flags |= IW_POWER_ALL_R;
 		wrqu->power.flags |= IW_POWER_TIMEOUT;

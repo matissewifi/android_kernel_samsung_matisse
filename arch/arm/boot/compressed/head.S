@@ -10,11 +10,6 @@
  */
 #include <linux/linkage.h>
 
-#ifdef CONFIG_KEXEC_HARDBOOT
-    #include <asm/kexec.h>
-    #include <asm/memory.h>
-#endif
-
 /*
  * Debugging stuff
  *
@@ -139,73 +134,6 @@ start:
  THUMB(		.thumb			)
 1:		mov	r7, r1			@ save architecture ID
 		mov	r8, r2			@ save atags pointer
-
-#ifdef CONFIG_KEXEC_HARDBOOT
-               /* Check hardboot page for a kexec kernel. */
-               ldr     r3, =KEXEC_HB_PAGE_ADDR
-               ldr     r0, [r3]
-               ldr     r1, =KEXEC_HB_PAGE_MAGIC
-               teq     r0, r1
-               bne     not_booting_other
-
-               /* Clear hardboot page magic to avoid boot loop. */
-               mov     r0, #1
-               str     r0, [r3]
-
-               /*
-                * Copy dtb from location up high in memory to default location.
-                * Kernel freezes if this is not done.
-                */
-               ldr     r1, [r3, #12]                   @ kexec_boot_atags
-               ldr     r2, [r3, #16]                   @ kexec_boot_atags_len
-               mov     r5, #0                                  @ iterator
-catags_cpy:
-               ldr     r0, [r1, r5]                    @ from kexec_boot_atags
-               str     r0, [r8, r5]                    @ to atags_pointer
-               add     r5, r5, #4
-               cmp     r5, r2
-               blo     catags_cpy
-
-               mov     r0, #2
-               str     r0, [r3]
-
-#ifdef KEXEC_HB_KERNEL_LOC
-               /*
-                * Copy kernel from location up high in memory to location in first 128MB.
-                * Bootloader on hammerhead erases first 128MB of ram on reboot, so it can't
-                * be in there before reboot, but decompressing in location above 128MB takes
-                * a long time. This memcpy is much quicker, for some reason.
-                */
-               ldr     r2, [r3, #4]                            @ kexec_start_address
-               ldr     r4, [r3, #20]                           @ kexec_kernel_len
-               ldr     r6, =KEXEC_HB_KERNEL_LOC    @ target
-               mov     r5, #0                                          @ iterator
-kernel_cpy:
-               ldr     r0, [r2, r5]                            @ from kexec_start_address
-               str     r0, [r6, r5]                            @ to KEXEC_HB_KERNEL_LOC
-               add     r5, r5, #4
-               cmp     r5, r4
-               blo     kernel_cpy
-#else
-               ldr     r6, [r3, #4]                            @ kexec_start_address
-#endif
-
-               /* set registers and boot kexecd' kernel */
-               mov     r0, #3
-               str     r0, [r3]
-
-               mov     r0, #0
-               ldr     r1, [r3, #8]                            @ kexec_mach_type
-               mov     r2, r8                                          @ atags pointer
-               mov     pc, r6
-
-               mov     r0, #4
-               str     r0, [r3]
-
-               .ltorg
-
-not_booting_other:
-#endif
 
 #ifndef __ARM_ARCH_2__
 		/*
@@ -462,10 +390,10 @@ wont_overwrite:
  *   sp  = stack pointer
  */
 		orrs	r1, r0, r5
-#ifndef CONFIG_CRYPTO_FIPS
-		beq	not_relocated
+#ifdef CONFIG_CRYPTO_FIPS_OLD_INTEGRITY_CHECK
+		beq not_relocated_copy
 #else
-        beq not_relocated_copy
+		beq	not_relocated
 #endif
 		add	r11, r11, r0
 		add	r12, r12, r0
@@ -479,7 +407,7 @@ wont_overwrite:
 		add	r2, r2, r0
 		add	r3, r3, r0
 
-#ifdef CONFIG_CRYPTO_FIPS
+#ifdef CONFIG_CRYPTO_FIPS_OLD_INTEGRITY_CHECK
         bl copy_compressed
 #endif
 		/*
@@ -566,7 +494,7 @@ params:		ldr	r0, =0x10000100		@ params_phys for RPC
  * change@ksingh.sra-dallas - Copying the zImage to a secure location 
  * this copy will be used to computer integrity for FIPS validation
  */
-#ifdef CONFIG_CRYPTO_FIPS
+#ifdef CONFIG_CRYPTO_FIPS_OLD_INTEGRITY_CHECK
 not_relocated_copy:
 		bl copy_compressed
 		b not_relocated
@@ -771,7 +699,6 @@ __armv7_mmu_cache_on:
 		mcrne	p15, 0, r0, c8, c7, 0	@ flush I,D TLBs
 #endif
 		mrc	p15, 0, r0, c1, c0, 0	@ read control reg
-		bic	r0, r0, #1 << 28	@ clear SCTLR.TRE
 		orr	r0, r0, #0x5000		@ I-cache enable, RR cache replacement
 		orr	r0, r0, #0x003c		@ write buffer
 #ifdef CONFIG_MMU
